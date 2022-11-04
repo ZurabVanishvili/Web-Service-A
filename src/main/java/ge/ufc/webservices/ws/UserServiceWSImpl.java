@@ -16,12 +16,12 @@ import java.sql.SQLException;
 
 @WebService
 public class UserServiceWSImpl implements UserServiceWS {
-private Connection connection;
+    private Connection connection;
     @Resource
     WebServiceContext wsContext;
 
     @Override
-    public User getUser(int user_id) throws UserNotFound, DatabaseException, AgentAccessDenied, SQLException, AgentAuthFailed {
+    public User getUser(int user_id) throws UserNotFound, DatabaseException, AgentAccessDenied, AgentAuthFailed, InternalError {
         try {
             connection = DatabaseManager.getDatabaseConnection();
             UserRepository user = new UserRepositoryImpl(connection);
@@ -40,7 +40,7 @@ private Connection connection;
     }
 
     @Override
-    public int pay(String tr_id, int user_id, double amount) throws DuplicateFault, AmountNotPositive, UserNotFound, DatabaseException, AgentAccessDenied, SQLException, AgentAuthFailed {
+    public int pay(String tr_id, int user_id, double amount) throws DuplicateFault, AmountNotPositive, UserNotFound, DatabaseException, AgentAccessDenied, AgentAuthFailed, TransactionNotFound, InternalError {
         try {
             connection = DatabaseManager.getDatabaseConnection();
             UserRepository user = new UserRepositoryImpl(connection);
@@ -53,14 +53,17 @@ private Connection connection;
 
             return user.pay(agent_id, tr_id, user_id, amount);
 
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         } finally {
             DatabaseManager.close(connection);
         }
+        return 0;
     }
 
     @Override
-    public int status(String transaction_id) throws AgentAccessDenied, SQLException, TransactionNotFound, AgentAuthFailed, InternalError, DatabaseException {
-        try{
+    public int status(String transaction_id) throws AgentAccessDenied, TransactionNotFound, AgentAuthFailed, InternalError, DatabaseException {
+        try {
             connection = DatabaseManager.getDatabaseConnection();
             UserRepository user = new UserRepositoryImpl(connection);
 

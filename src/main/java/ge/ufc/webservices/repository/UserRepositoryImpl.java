@@ -20,7 +20,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User check(int user_id) throws UserNotFound, DatabaseException {
+    public User check(int user_id) throws UserNotFound, DatabaseException, InternalError {
         User user = new User();
         try (PreparedStatement ps = connection.prepareStatement(String.valueOf(SQLQuery.SelectUserById.query))) {
             ps.setInt(1, user_id);
@@ -38,12 +38,12 @@ public class UserRepositoryImpl implements UserRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new DatabaseException("User not found");
+            throw new InternalError("User not found");
         }
     }
 
     @Override
-    public int pay(int agent_id, String transaction_id, int user_id, double amount) throws DuplicateFault, UserNotFound, AmountNotPositive, DatabaseException {
+    public int pay(int agent_id, String transaction_id, int user_id, double amount) throws DuplicateFault, UserNotFound, AmountNotPositive, DatabaseException, SQLException, TransactionNotFound, InternalError {
         double balance = 0;
         int system_transaction_id = 0;
         ResultSet resultSet;
@@ -80,7 +80,7 @@ public class UserRepositoryImpl implements UserRepository {
                     ps.setString(2, transaction_id);
                     ps.setInt(3, user_id);
                     ps.setDouble(4, amount);
-                    ps.setTimestamp(5, new java.sql.Timestamp(new java.util.Date().getTime()));
+                    ps.setTimestamp(5, new Timestamp(new java.util.Date().getTime()));
 
                     ps.execute();
 
@@ -92,7 +92,7 @@ public class UserRepositoryImpl implements UserRepository {
                 if (Objects.equals(e.getSQLState(), DUPLICATE_KEY_ERROR)) {
                     ResultSet rs = ps.getGeneratedKeys();
                     if (rs.next()) {
-                        system_transaction_id = rs.getInt(1);
+                        system_transaction_id = status(transaction_id);
                         ps5.setInt(1, system_transaction_id);
                         resultSet2 = ps5.executeQuery();
                         if (resultSet2.next()) {
@@ -122,8 +122,8 @@ public class UserRepositoryImpl implements UserRepository {
 
             }
 
-        } catch (SQLException e) {
-            throw new DatabaseException(e.getMessage());
+        } catch (SQLException | TransactionNotFound | InternalError e) {
+            throw e;
         }
         return system_transaction_id;
     }

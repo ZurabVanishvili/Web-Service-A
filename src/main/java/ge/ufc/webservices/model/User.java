@@ -11,16 +11,6 @@ public class User {
     public User() {
     }
 
-
-//    public User(String firstname, String lastname, double money) {
-//        firstname = firstname.substring(0, 1).toUpperCase(Locale.ROOT);
-//        lastname = lastname.substring(0, 1).toUpperCase(Locale.ROOT);//        this.fullName = firstname + "." + lastname+".";
-//        this.money = money;
-//    }
-
-
-
-
     public String getFirstname() {
         return firstname;
     }

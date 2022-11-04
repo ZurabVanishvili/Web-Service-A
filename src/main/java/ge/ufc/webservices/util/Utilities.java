@@ -35,7 +35,7 @@ public class Utilities {
 
     }
 
-    public static boolean checkAgentInfo(Connection connection, int agent_id, WebServiceContext wsContext) throws AgentAccessDenied, SQLException, AgentAuthFailed, DatabaseException {
+    public static boolean checkAgentInfo(Connection connection, int agent_id, WebServiceContext wsContext) throws AgentAccessDenied, AgentAuthFailed, DatabaseException {
         HttpServletRequest req = (HttpServletRequest) wsContext.getMessageContext().get(MessageContext.SERVLET_REQUEST);
         try (PreparedStatement ps = connection.prepareStatement(SQLQuery.CheckPasswd.query)) {
 
@@ -55,7 +55,7 @@ public class Utilities {
                                     //check agent IP
                                     if (!Objects.equals(rs2.getString("allowed_ip"), req.getRemoteAddr()))
                                         throw new AgentAccessDenied();
-                                    
+
                                 }
 
                             }
@@ -64,7 +64,10 @@ public class Utilities {
                     }
                 }
             }
-            return true;
+        } catch (SQLException e) {
+            throw new DatabaseException("Exception occurred");
         }
+        return true;
+
     }
 }

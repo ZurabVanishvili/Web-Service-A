@@ -14,12 +14,11 @@ import java.sql.SQLException;
 @WebService
 @SOAPBinding(style = SOAPBinding.Style.DOCUMENT,use=SOAPBinding.Use.LITERAL,
 parameterStyle = SOAPBinding.ParameterStyle.WRAPPED)
-@SuppressWarnings("unused")
 public interface UserServiceWS {
 
     @WebMethod(operationName = "getUser")
     @WebResult(name = "getUserResult")
-    User getUser (@WebParam(name = "id") int user_id) throws UserNotFound, DatabaseException, AgentAccessDenied, SQLException, AgentAuthFailed;
+    User getUser (@WebParam(name = "id") int user_id) throws UserNotFound, DatabaseException, AgentAccessDenied, AgentAuthFailed, InternalError;
 
     @WebMethod(operationName = "pay")
     @WebResult(name = "getPayResult")
@@ -27,9 +26,9 @@ public interface UserServiceWS {
             @WebParam(name = "transaction_id") String tr_id,
             @WebParam(name = "user_id")int user_id,
             @WebParam(name = "amount") double amount)
-            throws DuplicateFault, AmountNotPositive, UserNotFound, DatabaseException, AgentAccessDenied, SQLException, AgentAuthFailed;
+            throws DuplicateFault, AmountNotPositive, UserNotFound, DatabaseException, AgentAccessDenied, AgentAuthFailed, SQLException, TransactionNotFound, InternalError;
 
     @WebMethod(operationName = "status")
     @WebResult(name = "getStatus")
-    int status(@WebParam(name = "transaction_id") String  transaction_id) throws AgentAccessDenied, SQLException, TransactionNotFound, AgentAuthFailed, InternalError, DatabaseException;
+    int status(@WebParam(name = "transaction_id") String  transaction_id) throws AgentAccessDenied, TransactionNotFound, AgentAuthFailed, InternalError, DatabaseException;
 }
