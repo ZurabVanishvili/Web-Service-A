@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Objects;
 
+@SuppressWarnings("all")
 public class Utilities {
     private static final Logger lgg = LogManager.getLogger();
 
