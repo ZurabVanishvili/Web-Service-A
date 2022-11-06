@@ -7,6 +7,8 @@ import ge.ufc.webservices.model.User;
 import ge.ufc.webservices.repository.UserRepository;
 import ge.ufc.webservices.repository.UserRepositoryImpl;
 import ge.ufc.webservices.util.Utilities;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Resource;
 import javax.jws.WebService;
@@ -17,6 +19,7 @@ import java.sql.SQLException;
 @WebService
 public class UserServiceWSImpl implements UserServiceWS {
     private Connection connection;
+    private static final Logger lgg = LogManager.getLogger();
     @Resource
     WebServiceContext wsContext;
 
@@ -24,15 +27,19 @@ public class UserServiceWSImpl implements UserServiceWS {
     public User getUser(int user_id) throws UserNotFound, DatabaseException, AgentAccessDenied, AgentAuthFailed, InternalError {
         try {
             connection = DatabaseManager.getDatabaseConnection();
-            UserRepository user = new UserRepositoryImpl(connection);
+            UserRepository userRepository = new UserRepositoryImpl(connection);
 
+            lgg.trace("Received user_id :" +user_id);
             int agent_id = Utilities.checkAgentID(wsContext.getMessageContext());
 
-            if (!Utilities.checkAgentInfo(connection, agent_id, wsContext)) {
+            if (!Utilities.checkAgentInfo(agent_id, wsContext)) {
                 throw new DatabaseException("Exception");
             }
 
-            return user.check(user_id);
+            User user1 = userRepository.check(user_id);
+
+            lgg.trace("Response: "+user1);
+            return user1;
 
         } finally {
             DatabaseManager.close(connection);
@@ -44,14 +51,15 @@ public class UserServiceWSImpl implements UserServiceWS {
         try {
             connection = DatabaseManager.getDatabaseConnection();
             UserRepository user = new UserRepositoryImpl(connection);
-
+            lgg.trace("Received arguments: agent_transaction_id {} , user_id {} , amount {} "+tr_id , user_id , amount);
             int agent_id = Utilities.checkAgentID(wsContext.getMessageContext());
 
-            if (!Utilities.checkAgentInfo(connection, agent_id, wsContext)) {
+            if (!Utilities.checkAgentInfo(agent_id, wsContext)) {
                 throw new DatabaseException("Exception");
             }
-
-            return user.pay(agent_id, tr_id, user_id, amount);
+            int sys_id = user.pay(agent_id, tr_id, user_id, amount);
+            lgg.trace("Response : "+ sys_id);
+            return sys_id;
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -66,13 +74,16 @@ public class UserServiceWSImpl implements UserServiceWS {
         try {
             connection = DatabaseManager.getDatabaseConnection();
             UserRepository user = new UserRepositoryImpl(connection);
+            lgg.trace("Received transaction id : {}"+transaction_id);
 
             int agent_id = Utilities.checkAgentID(wsContext.getMessageContext());
 
-            if (!Utilities.checkAgentInfo(connection, agent_id, wsContext)) {
+            if (!Utilities.checkAgentInfo(agent_id, wsContext)) {
                 throw new DatabaseException("Exception");
             }
-            return user.status(transaction_id);
+            int status = user.status(transaction_id);
+            lgg.trace("System transaction id : "+ status);
+            return status;
 
         } finally {
             DatabaseManager.close(connection);
