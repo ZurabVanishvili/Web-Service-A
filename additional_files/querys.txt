@@ -27,7 +27,7 @@ connect 'jdbc:derby://localhost:1527/sample;create=true';
 connect 'jdbc:derby://localhost:1527/sample2;create=true';
 
 
-agent_id = agent_1
+agent_id = 1
 password = YWdlbnQxcGFzcw==
 
 
